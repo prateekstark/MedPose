@@ -204,3 +204,26 @@ collected 4 items
 tests/test_patterns.py ....                                              [100%]
 ============================== 4 passed in 0.05s ===============================
 ```
+
+A5 commit: `6e381a4`.
+
+## A6 — Offline exercise review
+
+Complete low-high-low excursions produce repetition count, per-repetition range,
+total/rising/returning duration, side differences and descriptive session
+comparisons. Incomplete excursions, NaNs, low confidence and excessive time gaps
+are not bridged. No recommendation, dose or exercise change is produced. Context
+mismatches suppress session differences; otherwise no real-change label is given
+without A4 personal repeatability analysis.
+
+low_deg, high_deg, min_confidence and max_gap_s are explicit caller settings,
+all **provisional: needs clinician review**. There are no shipped clinical values.
+Tempo is elapsed timestamp difference, range is max-min; neither is a clinical
+threshold. Side comparisons are differences of mean ranges, not matched reps.
+
+Command: `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 .conda-envs/opencap/bin/python -m pytest tests/test_exercise.py --basetemp=.pytest_cache/a6`
+```text
+collected 7 items
+tests/test_exercise.py .......                                           [100%]
+============================== 7 passed in 0.04s ===============================
+```
