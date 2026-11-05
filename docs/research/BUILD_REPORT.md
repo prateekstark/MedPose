@@ -180,3 +180,27 @@ collected 7 items
 tests/test_change.py .......                                             [100%]
 ============================== 7 passed in 0.06s ===============================
 ```
+
+A4 commit: `6a50b8b`.
+
+## A5 — Provisional pattern prompts
+
+Seven requested candidates are configured in `medpose/config/patterns.json`.
+Every threshold ships null (disabled). No normative angle is invented. A reviewer
+must explicitly choose a provisional threshold, coordinate sign/side, statistic
+and task interpretation. Enabled rules are whole-clip descriptive screens, not
+phase-specific diagnostic criteria. Missing data produces unavailable output.
+Prompts say “worth discussing with a clinician”, disclose unavailable/unreliable
+errors, and ankle prompts state that the reading reflects foot and brace together.
+No diagnosis, severity score or treatment recommendation is generated.
+
+All rule thresholds: **provisional: needs clinician review**; no clinical cutoff
+or clinical formula is cited or claimed. Range=max-min; asymmetry uses absolute
+difference between left/right ranges. These are descriptive summaries only.
+
+Command: `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 .conda-envs/opencap/bin/python -m pytest tests/test_patterns.py --basetemp=.pytest_cache/a5`
+```text
+collected 4 items
+tests/test_patterns.py ....                                              [100%]
+============================== 4 passed in 0.05s ===============================
+```

@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "rules": [
+    {
+      "name": "crouch",
+      "coordinates": [
+        "knee_angle_l"
+      ],
+      "plane": "sagittal",
+      "task": "walking",
+      "statistic": "minimum",
+      "operator": "gt",
+      "threshold_deg": null,
+      "status": "provisional: needs clinician review",
+      "origin": "Unvalidated candidate; clinician must choose threshold, coordinate sign, side and task interpretation"
+    },
+    {
+      "name": "stiff knee",
+      "coordinates": [
+        "knee_angle_l"
+      ],
+      "plane": "sagittal",
+      "task": "walking",
+      "statistic": "range",
+      "operator": "lt",
+      "threshold_deg": null,
+      "status": "provisional: needs clinician review",
+      "origin": "Unvalidated candidate; clinician must choose threshold, coordinate sign, side and task interpretation"
+    },
+    {
+      "name": "equinus or toe walking",
+      "coordinates": [
+        "ankle_angle_l"
+      ],
+      "plane": "sagittal",
+      "task": "walking",
+      "statistic": "mean",
+      "operator": "lt",
+      "threshold_deg": null,
+      "status": "provisional: needs clinician review",
+      "origin": "Unvalidated candidate; clinician must choose threshold, coordinate sign, side and task interpretation"
+    },
+    {
+      "name": "scissoring",
+      "coordinates": [
+        "hip_adduction_l"
+      ],
+      "plane": "frontal",
+      "task": "walking",
+      "statistic": "mean",
+      "operator": "gt",
+      "threshold_deg": null,
+      "status": "provisional: needs clinician review",
+      "origin": "Unvalidated candidate; clinician must choose threshold, coordinate sign, side and task interpretation"
+    },
+    {
+      "name": "trunk sway",
+      "coordinates": [
+        "lumbar_bending"
+      ],
+      "plane": "frontal",
+      "task": "walking",
+      "statistic": "range",
+      "operator": "gt",
+      "threshold_deg": null,
+      "status": "provisional: needs clinician review",
+      "origin": "Unvalidated candidate; clinician must choose threshold, coordinate sign, side and task interpretation"
+    },
+    {
+      "name": "pelvic obliquity",
+      "coordinates": [
+        "pelvis_list"
+      ],
+      "plane": "frontal",
+      "task": "walking",
+      "statistic": "range",
+      "operator": "gt",
+      "threshold_deg": null,
+      "status": "provisional: needs clinician review",
+      "origin": "Unvalidated candidate; clinician must choose threshold, coordinate sign, side and task interpretation"
+    },
+    {
+      "name": "asymmetry",
+      "coordinates": [
+        "knee_angle_l",
+        "knee_angle_r"
+      ],
+      "plane": "sagittal",
+      "task": "walking",
+      "statistic": "range_difference",
+      "operator": "gt",
+      "threshold_deg": null,
+      "status": "provisional: needs clinician review",
+      "origin": "Unvalidated candidate; clinician must choose threshold, coordinate sign, side and task interpretation"
+    }
+  ]
+}
