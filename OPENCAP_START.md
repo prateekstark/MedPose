@@ -48,7 +48,7 @@ mass_kg: 70.0   # replace with measured mass in kilograms
 sex: female     # male or female, as expected by the selected model
 ```
 
-The outputs, including `mono.json`, are written under the Monocular checkout's `results/` folder. Open that JSON in [`viewer.html`](medpose/viewer/viewer.html) for playback and different camera angles.
+The outputs, including `mono.json`, are written under the Monocular checkout's `results/` folder. The new [`viewer.html`](medpose/viewer/viewer.html) accepts the shared Trial format, not legacy `mono.json`. Export joint angles through `medpose.trial.load_opensim_mot` with explicit metadata and units before viewing; no automatic legacy-JSON conversion is supplied.
 
 The source repository is licensed under **PolyForm Noncommercial 1.0**. Public WHAM, ViTPose, and Core weights are available locally. Required SMPL body-model files have a separate license that must be reviewed and accepted by the user before downloading; those files are excluded from the downloader.
 
@@ -98,7 +98,7 @@ Then stage the synchronized movement videos as another trial in the same session
   --cameras Cam0 Cam1
 ```
 
-Outputs use OpenCap's generic folder names: joint angles in `Data/<session>/OpenSimData/Kinematics/<trial_id>.mot`, markers in `Data/<session>/MarkerData/PostAugmentation/`, and 3D viewer data in `Data/<session>/VisualizerJsons/<trial>/` (open it in `medpose/viewer/viewer.html`, or with `viewer.html?src=/path` when served by the CP Motion app).
+Outputs use OpenCap's generic folder names: joint angles in `Data/<session>/OpenSimData/Kinematics/<trial_id>.mot`, markers in `Data/<session>/MarkerData/PostAugmentation/`, and 3D viewer data in `Data/<session>/VisualizerJsons/<trial>/` (legacy format; the new viewer instead reads local Trial JSON exported through `medpose.trial`). URL loading was removed to keep the viewer offline.
 
 A flat checkerboard has two mirror-image pose solutions per camera, and Core saves both during calibration. As OpenCap's server does, the wrapper passes both to the neutral trial (`--calibration-trial` names the checkerboard trial, default `calibration`), where Core keeps the pair that reconstructs the standing person best; the choice is printed and saved in `Videos/calibOptionSelections.json`.
 
@@ -124,7 +124,7 @@ Neither configured workflow is real-time. Both analyze recorded video offline, a
 - A first separate Python 3.9/OpenSim install was attempted, but the package-server connection reset during OpenSim download. That partial environment was removed; the later project-local environment above was installed successfully.
 - The camera-intrinsics catalog from OpenCap Core is copied into the Monocular checkout. It contains iPhone/iPad entries, not Android calibration profiles. Android input therefore still needs camera/lens-specific calibration at the chosen resolution and frame rate.
 - OpenCap Monocular's environment is missing `ultralytics`, which its full `installation/requirements.txt` lists; Monocular stops at import until it is installed.
-- [`viewer.html`](medpose/viewer/viewer.html) is a standalone, local interactive viewer for OpenCap visualizer JSON outputs. It has been opened in Codex, but not exercised with generated motion data.
+- [`viewer.html`](medpose/viewer/viewer.html) now reads local shared Trial JSON with schematic geometry, synchronized curves and an optional local video. Legacy OpenCap visualizer JSON and URL loading are no longer supported. See `docs/research/BUILD_REPORT.md` for scripted checks and the remaining browser QA gap.
 - No patient videos have been used or uploaded. SMPL body-model files and the official WHAM fetch script require account credentials and separate license acceptance; those files have not been downloaded.
 
 The compatible inference dependencies and public checkpoints are in place, but full Monocular inference is not yet ready: the body-model step needs your separate license acceptance. The multi-camera route still needs Android camera calibration and synchronization. The current tools process recorded videos offline, not live camera streams. Before using either output for CP assessment, compare the exact measures against a trusted reference method on representative CP recordings.

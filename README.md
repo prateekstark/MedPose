@@ -11,7 +11,7 @@ Read [docs/DATA_POLICY.md](docs/DATA_POLICY.md) before recording anyone. Scienti
 |---|---|
 | 2+ cameras (OpenCap Core) | Runs on upstream's healthy iPhone test clip. **Not yet run on real Android footage** |
 | 1 Android phone or webcam (OpenCap Monocular) | Wrapper exists, but **has never completed a run here**: needs the SMPL licence, missing dependencies and a better GPU |
-| Gait metrics, reports, error estimates, CP logic | Not built yet |
+| Trial format, gait/exercise summaries, change checks, prompts, reports and benchmarks | Research implementations with synthetic tests; thresholds provisional, error table empty, no validation on people |
 
 ## Layout
 | Path | Purpose |
@@ -20,7 +20,7 @@ Read [docs/DATA_POLICY.md](docs/DATA_POLICY.md) before recording anyone. Scienti
 | `medpose/capture/intrinsics.py` | Checkerboard calibration, with a quality gate |
 | `medpose/subject.py` | Requires measured height and mass; no adult defaults |
 | `medpose/engine/` | `core_stage`, `core_run` and `mono_run` wrappers around OpenCap |
-| `medpose/viewer/viewer.html` | Local 3D viewer for OpenCap output; uploads nothing |
+| `medpose/viewer/viewer.html` | Offline Trial viewer with schematic stick figures and curves; uploads nothing |
 | `tests/` | Test suite, using synthetic footage only |
 | `tools/download_public_weights.py` | Fetches public checkpoints, excluding SMPL |
 | `upstream.lock.json`, `patches/` | Pinned upstream commits and our local edits to them |
@@ -54,3 +54,19 @@ Record the checkerboard and movement videos with the same camera, lens, resoluti
 
 ## Licences
 OpenCap Core is Apache-2.0. OpenCap Monocular is PolyForm Noncommercial, and SMPL has its own non-commercial licence that you must accept yourself. MedPose's own code has no licence yet; choose one before any public release.
+
+## Research analysis layer
+
+Read [the build report](docs/research/BUILD_REPORT.md) for package commits, actual
+Python 3.9 test output, formulas, threshold status and remaining validation gaps.
+`medpose.trial.Trial` is the engine-independent input; schema 2 adds optional
+world-frame heel/toe sole positions and a ground plane. Schema 1 remains readable.
+`load_opensim_mot` requires explicit acquisition metadata and unit declarations;
+it does not infer contacts or a participant's body geometry.
+
+The error table ships empty. Pattern thresholds ship disabled; gait and exercise
+segmentation settings must be supplied explicitly and remain provisional.
+Reports are static standalone HTML/SVG. Open `medpose/viewer/viewer.html` directly
+and select local Trial files; the viewer no longer accepts legacy OpenCap visualizer
+JSON or `?src=` URLs. Its simplified stick figure is not a full-body reconstruction.
+No model adapter, dataset loader, kinetics or original GDI was added.
