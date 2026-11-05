@@ -13,7 +13,9 @@ from typing import Optional, Tuple
 
 import numpy as np
 
-SCHEMA_VERSION = 1
+from medpose.feet import FootPositions
+
+SCHEMA_VERSION = 2
 TRANSLATIONS = frozenset({"pelvis_tx", "pelvis_ty", "pelvis_tz"})
 MODE_CAMERAS = {"webcam": {1}, "1_phone": {1}, "2_phone": {2}, "3_4_phone": {3, 4}}
 
@@ -53,6 +55,7 @@ class Trial:
     frame_rate: float
     supports: Tuple[str, ...] = ()
     confidence: Optional[np.ndarray] = None
+    foot_positions: Optional[FootPositions] = None
 
     def __post_init__(self):
         if isinstance(self.coordinate_names, str) or not self.coordinate_names:
@@ -89,6 +92,10 @@ class Trial:
             known = confidence[np.isfinite(confidence)]
             if np.any((known < 0) | (known > 1)):
                 raise ValueError("confidence must be in [0, 1] or missing")
+        if self.foot_positions is not None:
+            if not isinstance(self.foot_positions, FootPositions):
+                raise ValueError("foot_positions must be FootPositions")
+            self.foot_positions.validate_frames(len(time))
         for field, value in (("time", time), ("values", values), ("coordinate_names", names),
                              ("supports", supports), ("confidence", confidence)):
             object.__setattr__(self, field, value)
@@ -112,16 +119,19 @@ class Trial:
                 "engine_name": self.engine_name, "engine_version": self.engine_version,
                 "camera_count": int(self.camera_count), "frame_rate": float(self.frame_rate),
                 "supports": list(self.supports),
-                "confidence": None if self.confidence is None else rows(self.confidence)}
+                "confidence": None if self.confidence is None else rows(self.confidence),
+                "foot_positions": None if self.foot_positions is None else self.foot_positions.to_dict()}
 
     @classmethod
     def from_dict(cls, data):
         fields = {"schema_version", "time", "coordinate_names", "units", "values",
                   "recording_mode", "engine_name", "engine_version", "camera_count",
                   "frame_rate", "supports", "confidence"}
+        if isinstance(data, dict) and data.get("schema_version") == 2:
+            fields.add("foot_positions")
         if not isinstance(data, dict) or set(data) != fields:
             raise ValueError("Trial JSON has missing or unknown fields (identifiers are not supported)")
-        if type(data["schema_version"]) is not int or data["schema_version"] != SCHEMA_VERSION:
+        if type(data["schema_version"]) is not int or data["schema_version"] not in (1, SCHEMA_VERSION):
             raise ValueError("Unsupported Trial schema version")
         for field in ("time", "coordinate_names", "units", "values", "supports"):
             if not isinstance(data[field], list):
@@ -142,6 +152,8 @@ class Trial:
             for field in ("values", "confidence"):
                 if data[field] == []:
                     kwargs[field] = np.empty((0, len(data["coordinate_names"])))
+        if kwargs.get("foot_positions") is not None:
+            kwargs["foot_positions"] = FootPositions.from_dict(kwargs["foot_positions"], len(data["time"]))
         trial = cls(**kwargs)
         if list(trial.units) != data["units"]:
             raise ValueError("Coordinate units must be degrees or metres for pelvis translations")

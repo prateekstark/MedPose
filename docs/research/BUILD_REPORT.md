@@ -81,16 +81,68 @@ conversion. Tests exercise synthetic inputs, including simulated routing of the
 `measured` label; those tests are not human error measurements. No full-project
 regression run or browser/network-request check has been performed in these packages.
 
-## Pending work and review decision
+## Earlier pause (resolved)
 
 A3–A8 and B1–B2 are not implemented. A3 needs an input decision: the requested Trial
 contains angles and pelvis translations, not foot positions or a ground plane.
 The user has been asked whether to extend Trial with optional foot positions and
 a ground-plane convention or explicitly report contact detection unavailable.
-No contacts will be guessed from angle peaks. Work is paused at that package
-boundary pending this decision, preserving the requested package order.
+No contacts will be guessed from angle peaks. The user subsequently approved optional foot positions; see A3 below.
 
 Review first: the contact-input decision; whether the provisional angular limit
 is suitable; the interpretation of reliable as benchmark-only; free-text fields
 cannot guarantee absence of identifiers. The schema has no personal identifier
 fields. Later reports must retain the caveats and provenance carried here.
+
+## A3 — Foot positions, contact candidates and gait summaries
+
+The user approved optional foot positions. Trial schema 2 adds world-frame heel/toe
+**sole contact locations**, a unit upward ground normal, plane offset in metres,
+optional per-point confidence, and non-identifying provenance. Schema 1 still
+loads without feet; unknown versions fail. Raw skin-marker positions must be
+mapped to sole locations by the engine; this package does not invent that mapping.
+Foot and pelvis positions must share the same world frame.
+
+Implemented provisional ground-proximity event candidates, complete cycles,
+time-normalized curves, cadence, geometric stance percentage, range/peaks,
+left-minus-right mean range differences and per-cycle values/mean/sample SD.
+No complete cycle is reported across missing positions, low confidence or a time
+gap exceeding the supplied limit. A single cycle has no estimated sample SD.
+Missing coordinate observations invalidate that coordinate's cycle; no gap is
+filled. Absent foot confidence is explicitly reported, never invented.
+
+All six detector settings must be supplied: clearance_m,
+penetration_tolerance_m, min_confidence, max_gap_s, min_stance_s, min_swing_s.
+All are **provisional: needs clinician review**, with no shipped clinical values.
+The numbers in tests are simulated fixture choices, not normative cutoffs.
+The detector cannot establish load/contact truth from geometric proximity.
+Cadence = 120 / ipsilateral cycle seconds assumes alternating steps; geometric
+stance percent = 100 * proximity seconds / cycle seconds. These are descriptive
+computations with provisional event timing, not validated clinical formulas.
+
+An explicit world-frame progression direction enables signed pelvis displacement
+per cycle / duration (speed) and leading-minus-trailing heel projection at candidate
+onset (step length). Both require pelvis translations. Source pelvis error labels
+are retained, but no numeric speed/step error is fabricated by reusing a positional
+error in different units; propagated errors remain **error not yet measured**.
+No forces are computed. No human accuracy is inferred from this implementation.
+
+Command:
+```sh
+PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 .conda-envs/opencap/bin/python -m pytest tests/test_trial.py tests/test_errors.py tests/test_gait.py --basetemp=.pytest_cache/a3
+```
+Actual output:
+```text
+collected 86 items
+tests/test_trial.py ..........................................           [ 48%]
+tests/test_errors.py .................................                   [ 87%]
+tests/test_gait.py ...........                                           [100%]
+============================== 86 passed in 0.42s ==============================
+```
+An initial variability fixture changed the endpoint shared by two cycles, so its
+hand calculation was wrong. It now uses a waveform with zero-valued boundaries;
+assertions still require the hand-computed mean 30 and sample SD sqrt(200).
+
+Review first: sole-point mapping and shared world frame; all detector settings;
+provisional cadence assumptions; event timing quantization to the first sampled
+frame; absent confidence; and lack of validated uncertainty propagation.
