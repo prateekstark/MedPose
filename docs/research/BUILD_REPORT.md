@@ -279,3 +279,31 @@ collected 3 items
 tests/test_viewer.py ...                                                 [100%]
 ============================== 3 passed in 0.51s ===============================
 ```
+
+A8 commit: `bd307d3`.
+
+## B1 — Benchmark aggregation and comparisons
+
+Results identify method, mode, coordinate, plane, task, statistic, aggregation,
+reference, correction, wrapping, source and run status. Raw and within-trial mean
+offset corrected results are separate rows. Frames are not bootstrapped: existing
+`subject_bootstrap_ci` resamples subject-level collections with equal subject
+weight. Complete missing-subject counts, paired-frame exclusions and coverage
+are retained. One subject yields a point but no displayed confidence interval.
+MAE, RMSE and median absolute error are supported. The aggregation is explicitly
+an equal-subject mean of mean trial statistics, not PBL/B3D's cohort median.
+
+Comparison rejects statistic/reference/correction/aggregation and other context
+mismatches unless an explicit mismatch label is provided. Publication-only rows
+are labelled published, never reproduced. Error-table export permits only raw
+reproduced rows from one method/statistic/reference/source; it validates collisions
+against A2 and retains CI/coverage/context in the origin. No published error values
+were added to the shipped table. Cohort-pooled correction remains unimplemented.
+
+Command: `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 .conda-envs/opencap/bin/python -m pytest tests/test_benchmark_report.py tests/test_metrics.py --basetemp=.pytest_cache/b1`
+```text
+collected 41 items
+tests/test_benchmark_report.py ...                                       [  7%]
+tests/test_metrics.py ......................................             [100%]
+============================== 41 passed in 0.65s ==============================
+```
