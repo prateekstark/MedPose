@@ -62,6 +62,9 @@ Open [the offline demo](medpose/ui/demo.html) directly in Chrome or another mode
 browser. It is a single HTML file with its video and Trial data embedded; no server
 or internet connection is needed. Use Play, scrub the timeline, rotate the model,
 select a joint, compare local Trial files or export an offline report.
+Use **Open picture** for PNG, JPEG, WebP, AVIF or BMP still images. Picture mode
+disables playback and does not estimate pose or joint angles; a separately loaded
+Trial can be reviewed at a manually selected frame.
 
 The sample is **synthetic**: its rendered walker video and motion curves come from
 the same invented data. No pose was recovered from video and no clinical accuracy

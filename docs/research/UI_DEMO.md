@@ -89,3 +89,41 @@ The unchanged deselected test reads a non-synthetic bundled iPhone profile, whic
 is outside this task's synthetic-only scope. No patient recordings or forbidden
 data directories were read. Work remains on `research-agent/build`; no push or
 merge was performed.
+
+## Single-picture review
+
+Use **Open picture** to choose a local PNG, JPEG, WebP, AVIF or BMP. Decoding stays
+in the browser. The image is fitted without cropping, its dimensions are shown,
+and video playback/speed controls are disabled. SVG is deliberately unsupported.
+Unsupported or malformed images leave the current review unchanged.
+
+Opening a picture from the synthetic demo clears the unrelated invented Trial and
+video. With only a picture, no joint angles, model segments, gait events, timing or
+ranges are invented. You can load a separate matching Trial and select its frame
+manually. The UI explicitly states that the Trial and picture were loaded
+separately, and the image did not generate the Trial. Replacing a picture releases
+its local object URL; resetting the demo restores video controls.
+
+Picture-only export contains review notes, dimensions and limitations. It does
+not embed the image. Export with a separate Trial retains the Trial curves and
+explicitly states that they were not estimated from the picture. No pose model,
+clinical threshold or inference adapter was added.
+
+Additional browser checks use a generated 32 × 24 PNG, never a real recording.
+They test import, clearing demo data, dimensions, disabled playback, no fabricated
+range, report limits, invalid-format/decode rejection, manual Trial-frame matching,
+reset behavior and no remote resource/network API use on desktop and mobile.
+The first rerun exposed a test-fixture FileList reused after the input had cleared;
+the test now performs a fresh file selection, retaining all feature assertions.
+
+Command:
+```sh
+PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 .conda-envs/opencap/bin/python -m pytest tests/test_ui.py --basetemp=.pytest_cache/picture-ui
+```
+Actual output:
+```text
+============================== 4 passed in 7.63s ===============================
+```
+These are the four existing UI test cases with expanded browser workflows, not
+four additional test cases. The full Python regression suite was not repeated for
+this UI-only change.

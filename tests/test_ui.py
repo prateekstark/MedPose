@@ -123,6 +123,41 @@ BROWSER_CHECKS = r'''
         assert(!state.demo&&state.trial.engine_name==="local-test","Local Trial import");
         assert(!$("video").getAttribute("src"),"Unrelated demo video retained for local Trial");
         loadTrial({...local,time:[],values:[],confidence:null});assert(duration()===0,"Empty Trial");
+        // Generate pixels in the test browser: no real picture is opened.
+        loadDemo();
+        const fixture=document.createElement("canvas");fixture.width=32;fixture.height=24;
+        fixture.getContext("2d").fillRect(0,0,32,24);
+        const pictureBlob=await new Promise(resolve=>fixture.toBlob(resolve,"image/png"));
+        const pictureInput=new DataTransfer();
+        pictureInput.items.add(new File([pictureBlob],"synthetic.png",{type:"image/png"}));
+        $("picture-file").files=pictureInput.files;$("picture-file").dispatchEvent(new Event("change"));
+        for(let i=0;i<40&&!state.pictureURL;i++)await wait(50);
+        assert(state.pictureURL&&!$("picture").hidden,"Picture import failed");
+        assert(state.trial===null&&!state.demo,"Picture retained unrelated synthetic Trial");
+        assert($("video").hidden&&!$("video").getAttribute("src"),"Video not cleared for picture");
+        assert($("play").disabled&&$("speed").disabled,"Picture permits temporal playback");
+        assert($("video-resolution").textContent==="32 × 24","Picture dimensions");
+        assert($("range-left").textContent==="—","Picture invented an angle range");
+        let pictureReport=null;
+        URL.createObjectURL=function(blob){pictureReport=blob;return objectURL(blob);};
+        HTMLAnchorElement.prototype.click=function(){};
+        $("export").click();const pictureText=await pictureReport.text();
+        assert(pictureText.includes("No pose, joint angles"),"Picture report lacks limitation");
+        assert(!pictureText.includes("<img"),"Picture unexpectedly embedded in report");
+        URL.createObjectURL=objectURL;HTMLAnchorElement.prototype.click=originalClick;
+        const originalPicture=state.pictureURL;
+        rejected=false;try{await attachPicture(new File(["broken"],"broken.png",{type:"image/png"}));}catch(e){rejected=true;}
+        assert(rejected&&state.pictureURL===originalPicture,"Malformed picture changed current review");
+        rejected=false;try{await attachPicture(new File(["<svg/>"],"test.svg",{type:"image/svg+xml"}));}catch(e){rejected=true;}
+        assert(rejected,"Unsupported picture format accepted");
+        const matchingInput=new DataTransfer();matchingInput.items.add(new File([JSON.stringify(local)],"matching.json",{type:"application/json"}));
+        $("trial-file").files=matchingInput.files;$("trial-file").dispatchEvent(new Event("change"));
+        for(let i=0;i<20&&!state.trial;i++)await wait(50);
+        assert(state.trial&&state.pictureURL===originalPicture,"Matching Trial import cleared picture");
+        seek(1);assert(state.elapsed===1&&$("play").disabled,"Manual Trial-frame selection");
+        assert($("demo-notice").textContent.includes("loaded separately"),"Picture association not disclosed");
+        assert(document.documentElement.scrollWidth<=innerWidth+1,"Picture mode overflows mobile viewport");
+        loadDemo();assert(!state.pictureURL&&!$("play").disabled&&$("picture").hidden,"Reset left picture state behind");
         const resources=performance.getEntriesByType("resource").map(r=>r.name);
         assert(!resources.some(url=>/^https?:/i.test(url)),"Remote resource request detected");
         assert(window.__networkAttempts.length===0,"Network API was invoked");
