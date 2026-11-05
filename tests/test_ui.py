@@ -138,6 +138,15 @@ BROWSER_CHECKS = r'''
         assert($("play").disabled&&$("speed").disabled,"Picture permits temporal playback");
         assert($("video-resolution").textContent==="32 × 24","Picture dimensions");
         assert($("range-left").textContent==="—","Picture invented an angle range");
+        assert($("media-title").textContent==="Picture"&&$("media-stat-label").textContent==="PICTURE","Picture keeps recording labels");
+        assert(!$("heading-subtitle").textContent.includes("recording"),"Picture subtitle mentions recording");
+        assert(!$("model-empty").hidden&&$("model").hidden,"Picture leaves an unexplained empty grid");
+        assert($("model-empty-detail").textContent.includes("picture-to-pose engine is not connected"),"Missing-engine explanation absent");
+        assert($("model-presets").hidden&&$("model-drag-hint").hidden,"Unavailable model retains orbit controls");
+        assert($("timeline").hidden&&$("curves-card").hidden,"Picture-only view retains empty temporal controls");
+        assert($("open-video").hidden,"Picture panel retains video attachment label");
+        assert(getComputedStyle(document.body).backgroundColor!=="rgba(0, 0, 0, 0)","Transparent background risks unreadable embedding");
+
         let pictureReport=null;
         URL.createObjectURL=function(blob){pictureReport=blob;return objectURL(blob);};
         HTMLAnchorElement.prototype.click=function(){};
@@ -155,13 +164,18 @@ BROWSER_CHECKS = r'''
         for(let i=0;i<20&&!state.trial;i++)await wait(50);
         assert(state.trial&&state.pictureURL===originalPicture,"Matching Trial import cleared picture");
         seek(1);assert(state.elapsed===1&&$("play").disabled,"Manual Trial-frame selection");
+        assert(!$("timeline").hidden&&!$("curves-card").hidden&&!$("model").hidden,"Separate Trial does not restore data views");
+        assert($("play").hidden&&$("speed").hidden,"Still image shows motion playback controls");
         assert($("demo-notice").textContent.includes("loaded separately"),"Picture association not disclosed");
         assert(document.documentElement.scrollWidth<=innerWidth+1,"Picture mode overflows mobile viewport");
         loadDemo();assert(!state.pictureURL&&!$("play").disabled&&$("picture").hidden,"Reset left picture state behind");
+        assert($("media-title").textContent==="Recording"&&!$("timeline").hidden&&!$("play").hidden,"Demo reset retained picture labels/controls");
         const resources=performance.getEntriesByType("resource").map(r=>r.name);
         assert(!resources.some(url=>/^https?:/i.test(url)),"Remote resource request detected");
         assert(window.__networkAttempts.length===0,"Network API was invoked");
         loadDemo();switchPage("review");$("toast").classList.remove("show");for(let i=0;i<60&&!state.videoReady;i++)await wait(100);
+        await attachPicture(new File([pictureBlob],"synthetic.png",{type:"image/png"}));
+        $("toast").classList.remove("show");
         output.textContent=JSON.stringify({passed:true,videoDecoded:true,requests:window.__networkAttempts,remoteResources:resources.filter(r=>/^https?:/i.test(r)),width:innerWidth});
     } catch(error) { output.textContent=JSON.stringify({passed:false,error:error.message,stack:error.stack}); }
 })();

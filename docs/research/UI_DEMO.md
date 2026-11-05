@@ -127,3 +127,19 @@ Actual output:
 These are the four existing UI test cases with expanded browser workflows, not
 four additional test cases. The full Python regression suite was not repeated for
 this UI-only change.
+
+### Picture-mode clarity
+
+Picture-only reviews now use **Picture** labels, show an explicit explanation
+that no picture-to-pose engine is connected, and hide the empty model grid,
+rotation controls, playback timeline and joint-angle curves. A separately loaded
+Trial restores its available schematic and curves with manual frame selection.
+Resetting the demo restores recording labels and playback. An explicit light
+background keeps the workspace readable in embedded dark viewers.
+
+Browser checks cover these states at desktop and mobile widths using only the
+generated PNG. Their final screenshots show the picture-only empty state.
+
+Verification: `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 .conda-envs/opencap/bin/python -m pytest tests/test_ui.py --basetemp=.pytest_cache/picture_labels`
+completed with **4 passed in 9.68s**. Desktop and mobile picture-only screenshots
+were inspected. The full Python regression suite was not repeated for this UI fix.
