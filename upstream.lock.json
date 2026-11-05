@@ -1,0 +1,7 @@
+{
+  "_note": "Upstream checkouts stay in place because the conda env has editable installs pointing into them. Local edits are in patches/.",
+  "opencap-core": {"url": "https://github.com/opencap-org/opencap-core.git", "commit": "e5d29f12e725a2e14e6e4e85617834685f738753", "patch": null},
+  "opencap-monocular": {"url": "https://github.com/utahmobl/opencap-monocular.git", "commit": "e2d0b146533c8387ebfb823faaec0356c6175644", "patch": "patches/opencap-monocular.patch"},
+  "ViTPose": {"path": "opencap-monocular/WHAM/third-party/ViTPose", "commit": "d5216452796c90c6bc29f5c5ec0bdba94366768a", "patch": "patches/vitpose.patch"},
+  "DPVO": {"path": "opencap-monocular/WHAM/third-party/DPVO", "commit": "58338357611e7cf3563ed90f82168da7f8741d24", "patch": null}
+}

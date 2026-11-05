@@ -1,0 +1,39 @@
+diff --git a/installation/requirements_slim.txt b/installation/requirements_slim.txt
+index 233bcc9..f400db9 100644
+--- a/installation/requirements_slim.txt
++++ b/installation/requirements_slim.txt
+@@ -14,7 +14,7 @@ smplx
+ chumpy
+ 
+ # Computer vision
+-opencv-python
++opencv-python<4.11
+ imageio[ffmpeg]
+ 
+ # OpenMMLab (ViTPose) — mmcv-full must be installed via openmim BEFORE this file
+@@ -27,8 +27,6 @@ matplotlib>=3.7,<3.9
+ plotly
+ trimesh
+ kornia
+-tensorboard
+-streamlit
+ 
+ # API / server
+ fastapi
+@@ -47,4 +45,3 @@ gdown>=4.6.0
+ yacs>=0.1.8
+ flatten-dict>=0.4.2
+ ffmpeg-python
+-ultralytics
+diff --git a/run_mono_standalone.py b/run_mono_standalone.py
+index 12d2276..8ab5ff0 100644
+--- a/run_mono_standalone.py
++++ b/run_mono_standalone.py
+@@ -218,6 +218,7 @@ def run_mono_standalone(
+     # Run WHAM (match flow: estimate_local_only for consistent world/cam coordinates)
+     inputs_wham = {
+         "calib_path": calib_path,
++        "intrinsics_path": intrinsics_path,
+         "video_path": video_path,
+         "output_path": trial_path,
+         "visualize": True,

@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "deny": [
+      "Read(./patient_data/**)",
+      "Read(./normalized/**)",
+      "Read(./opencap-core/Data/**)",
+      "Read(./opencap-monocular/results/**)"
+    ]
+  }
+}

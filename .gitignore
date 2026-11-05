@@ -1,0 +1,28 @@
+# Patient data and video must never enter git. See docs/DATA_POLICY.md.
+patient_data/
+normalized/
+*.mp4
+*.MP4
+*.mov
+*.MOV
+*.avi
+*.mkv
+*.webm
+*.pickle
+*.pkl
+*.c3d
+
+# Upstream checkouts: pinned by upstream.lock.json and patches/, not vendored.
+opencap-core/
+opencap-monocular/
+
+# Local environments, weights and caches.
+.conda-envs/
+.cto-toolkit/
+__pycache__/
+*.pyc
+.pytest_cache/
+*.pth
+*.ckpt
+*.onnx
+.claude/settings.local.json

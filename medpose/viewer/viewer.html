@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MedPose 3D Motion Viewer</title>
+<style>
+:root{color-scheme:dark;--bg:#101419;--panel:#1b222a;--ink:#e9eef3;--muted:#9caaba;--accent:#55d6be}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px system-ui,sans-serif}header{padding:16px 22px;border-bottom:1px solid #303943;display:flex;align-items:center;justify-content:space-between;gap:12px}h1{font-size:18px;margin:0}main{height:calc(100vh - 61px);display:grid;grid-template-rows:1fr auto;gap:12px;padding:12px}#stage{position:relative;min-height:300px;background:radial-gradient(ellipse at center,#202832,#12171c 68%);border:1px solid #303943;border-radius:12px;overflow:hidden}canvas{width:100%;height:100%;display:block;touch-action:none}.toolbar{position:absolute;top:12px;left:12px;display:flex;flex-wrap:wrap;gap:7px}.toolbar button,.filelabel{background:#26313b;color:var(--ink);border:1px solid #465462;border-radius:7px;padding:8px 11px;cursor:pointer}.toolbar button:hover,.filelabel:hover{border-color:var(--accent)}#status{position:absolute;right:14px;top:14px;color:var(--muted);font-size:13px}.controls{display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--panel);border-radius:10px;flex-wrap:wrap}input[type=range]{flex:1;min-width:160px;accent-color:var(--accent)}.controls button{background:#26313b;color:var(--ink);border:1px solid #465462;border-radius:6px;padding:7px 11px}#notice{color:var(--muted);font-size:12px;margin-left:auto}#file{display:none}@media(max-width:650px){#notice{width:100%;margin:0}}
+</style>
+</head>
+<body>
+<header><h1>MedPose · 3D Motion Viewer</h1><span style="color:var(--muted);font-size:13px">Local file viewing · drag to orbit · wheel to zoom</span></header>
+<main><section id="stage"><canvas id="view"></canvas><div class="toolbar"><label class="filelabel" for="file">Open OpenCap JSON</label><input id="file" type="file" accept=".json,application/json"><button data-view="front">Front</button><button data-view="side">Side</button><button data-view="back">Back</button><button data-view="top">Top</button></div><div id="status">Open a mono.json or OpenCap visualizer JSON</div></section>
+<section class="controls"><button id="play">▶ Play</button><input id="frame" type="range" min="0" max="0" value="0"><span id="time">0.00 s</span><span id="notice">The viewer reads files locally; nothing is uploaded.</span></section></main>
+<script>
+const cv=document.querySelector('#view'),ctx=cv.getContext('2d'),fileInput=document.querySelector('#file'),frameSlider=document.querySelector('#frame'),statusEl=document.querySelector('#status'),timeEl=document.querySelector('#time');
+let data=null, frame=0, yaw=0, pitch=.08, zoom=1, dragging=false, lastX=0,lastY=0, playing=false,lastTick=0,worldCenter=[0,0,0],worldRadius=1;
+const groups=[['pelvis','torso','lumbar','trunk','head'],['pelvis','femur_r','tibia_r','talus_r','calcn_r','toes_r'],['pelvis','femur_l','tibia_l','talus_l','calcn_l','toes_l'],['torso','humerus_r','ulna_r','radius_r','hand_r'],['torso','humerus_l','ulna_l','radius_l','hand_l']];
+function resize(){const dpr=devicePixelRatio||1, r=cv.getBoundingClientRect();cv.width=r.width*dpr;cv.height=r.height*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);draw()}new ResizeObserver(resize).observe(cv);
+function bodyNames(){return Object.keys(data?.bodies||{})}
+function canonical(n){return n.toLowerCase().replaceAll('-','_').replaceAll(' ','_')}
+function getPos(name){const k=bodyNames().find(x=>canonical(x)===name);if(!k)return null;const v=data.bodies[k].translation?.[frame];return Array.isArray(v)&&v.length>=3?v.map(Number):null}
+function cloud(){return bodyNames().map(k=>{const p=data.bodies[k].translation?.[frame];return Array.isArray(p)&&p.length>=3?{name:canonical(k),p:p.map(Number)}:null}).filter(Boolean)}
+function rotate(p){const cy=Math.cos(yaw),sy=Math.sin(yaw),cp=Math.cos(pitch),sp=Math.sin(pitch);const x=cy*p[0]-sy*p[2],z=sy*p[0]+cy*p[2];return [x,cp*p[1]-sp*z,sp*p[1]+cp*z]}
+function draw(){const r=cv.getBoundingClientRect(),w=r.width,h=r.height;ctx.clearRect(0,0,w,h);ctx.strokeStyle='#28333d';ctx.lineWidth=1;for(let y=h*.57;y<h;y+=30){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke()}if(!data){ctx.fillStyle='#bdc9d5';ctx.textAlign='center';ctx.font='17px system-ui';ctx.fillText('Load a 3D motion JSON to explore the movement',w/2,h/2);return}
+const pts=cloud();if(!pts.length){ctx.fillStyle='#ffce84';ctx.textAlign='center';ctx.fillText('No body translations found in this JSON file',w/2,h/2);return}
+const center=rotate(worldCenter),span=Math.max(worldRadius*2,.5),scale=Math.min(w,h)*.68/span*zoom;
+function screen(p){const q=rotate(p);return [w/2+(q[0]-center[0])*scale,h*.52-(q[1]-center[1])*scale]}
+ctx.lineCap='round';ctx.lineJoin='round';
+for(const g of groups){let last=null;for(const n of g){const p=getPos(n);if(!p){last=null;continue}const s=screen(p);if(last){ctx.strokeStyle='#65d9c4';ctx.lineWidth=6;ctx.beginPath();ctx.moveTo(last[0],last[1]);ctx.lineTo(s[0],s[1]);ctx.stroke()}last=s}}
+// If the OpenSim model uses different segment labels, show all available body origins as dots.
+for(const o of pts){const [x,y]=screen(o.p);ctx.fillStyle=/pelvis|femur|tibia|calcn|toes|torso|trunk|head/.test(o.name)?'#f5a65b':'#94a4b5';ctx.beginPath();ctx.arc(x,y,3.5,0,Math.PI*2);ctx.fill()}
+ctx.fillStyle='#9caaba';ctx.font='12px system-ui';ctx.textAlign='left';ctx.fillText(`${pts.length} body points`,14,h-14)}
+function loadObject(obj,name){if(!obj?.time||!obj?.bodies)throw new Error('Expected a JSON with "time" and "bodies" (OpenCap visualizer format).');data=obj;frame=0;const lo=[Infinity,Infinity,Infinity],hi=[-Infinity,-Infinity,-Infinity];let count=0;for(const body of Object.values(obj.bodies)){for(const p of (body.translation||[])){if(!Array.isArray(p)||p.length<3||!p.every(Number.isFinite))continue;count++;for(let i=0;i<3;i++){const v=Number(p[i]);lo[i]=Math.min(lo[i],v);hi[i]=Math.max(hi[i],v)}}}if(!count)throw new Error('No 3D body translations found.');worldCenter=lo.map((v,i)=>(v+hi[i])/2);worldRadius=.25;for(const body of Object.values(obj.bodies)){for(const p of (body.translation||[])){if(!Array.isArray(p)||p.length<3||!p.every(Number.isFinite))continue;worldRadius=Math.max(worldRadius,Math.hypot(Number(p[0])-worldCenter[0],Number(p[1])-worldCenter[1],Number(p[2])-worldCenter[2]))}}frameSlider.max=Math.max(0,obj.time.length-1);frameSlider.value=0;statusEl.textContent=name;syncFrame();draw()}
+fileInput.addEventListener('change',async e=>{const f=e.target.files[0];if(!f)return;try{loadObject(JSON.parse(await f.text()),f.name)}catch(err){statusEl.textContent=err.message}});
+function syncFrame(){if(!data)return;frame=Number(frameSlider.value);timeEl.textContent=`${Number(data.time[frame]||0).toFixed(2)} s`;draw()}
+frameSlider.addEventListener('input',syncFrame);document.querySelector('#play').onclick=()=>{playing=!playing;document.querySelector('#play').textContent=playing?'⏸ Pause':'▶ Play'};
+function tick(t){if(playing&&data&&t-lastTick>45){lastTick=t;frameSlider.value=(frame+1)%data.time.length;syncFrame()}requestAnimationFrame(tick)}requestAnimationFrame(tick);
+document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{yaw=({front:0,side:Math.PI/2,back:Math.PI,top:0})[b.dataset.view];pitch=b.dataset.view==='top'?Math.PI/2-.05:.08;draw()});
+cv.addEventListener('pointerdown',e=>{dragging=true;lastX=e.clientX;lastY=e.clientY;cv.setPointerCapture(e.pointerId)});cv.addEventListener('pointerup',()=>dragging=false);cv.addEventListener('pointermove',e=>{if(!dragging)return;yaw+=(e.clientX-lastX)*.009;pitch=Math.max(-1.48,Math.min(1.48,pitch+(e.clientY-lastY)*.009));lastX=e.clientX;lastY=e.clientY;draw()});cv.addEventListener('wheel',e=>{zoom=Math.max(.45,Math.min(3,zoom*(e.deltaY<0?1.1:.91)));draw()},{passive:true});
+// ?src=/path opens that JSON from the same site (used by the CP Motion app); only same-site paths
+{const src=new URLSearchParams(location.search).get('src');let same=false;try{same=!!src&&new URL(src,location.href).origin===location.origin}catch{}if(same){statusEl.textContent='Loading…';fetch(src).then(r=>{if(!r.ok)throw new Error('Could not load '+src+' ('+r.status+')');return r.json()}).then(o=>loadObject(o,decodeURIComponent(src.split('/').slice(-2,-1)[0]||'motion'))).catch(err=>statusEl.textContent=err.message)}}
+</script></body></html>

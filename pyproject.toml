@@ -1,0 +1,9 @@
+[project]
+name = "medpose"
+version = "0.0.1"
+description = "Offline 3D movement analysis from ordinary cameras, for cerebral palsy research"
+requires-python = ">=3.9"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = [".", "tests"]
