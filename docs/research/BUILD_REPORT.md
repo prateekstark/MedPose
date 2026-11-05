@@ -146,3 +146,37 @@ assertions still require the hand-computed mean 30 and sample SD sqrt(200).
 Review first: sole-point mapping and shared world frame; all detector settings;
 provisional cadence assumptions; event timing quantization to the first sampled
 frame; absent confidence; and lack of validated uncertainty propagation.
+
+A3 commit: `787d0de`.
+
+## A4 — Repeatability and change
+
+`icc_absolute_agreement` implements balanced subjects-by-repeat-session ICC(A,1),
+with complete-case subject exclusions reported. It is not a person's own ICC.
+Formula: (MS_subject - MS_error) / (MS_subject + (k-1)*MS_error +
+(k/n)*(MS_session-MS_error)). [Liljequist et al. 2019, Eq.12](https://doi.org/10.1371/journal.pone.0219854)
+was read in the publisher PDF; source verified. No quality bands are imposed.
+
+Personal MDC95 = 1.96 * sqrt(2) * sample SD of this person's stable, independent
+repeat-session scalar measurements. The repeatability formula was read on
+[Martin Bland's author page](https://www-users.york.ac.uk/~mb55/meas/accept.htm).
+Its application assumes stable normally distributed independent measurement noise;
+biological variability is included. It is not an estimate from a cohort ICC.
+A minimum repeat-session count is caller-configured, >=2, **provisional: needs
+clinician review**; two is only the mathematical minimum. No clinical sample-size
+adequacy claim is made. The 1.96 constant is the cited normal 95% multiplier.
+
+Only a measured-source, nondegenerate personal estimate and a strictly larger
+absolute change permit `exceeds measured noise`. Context differences (including
+supports, mode and engine) suppress the label. Missing/too-few sessions and
+unconfirmed stable baseline have explicit statuses. Reusing the same Trial object
+as independent sessions is rejected. Caller must verify person identity, metric
+and task equivalence, independence and baseline stability; identifiers are not
+stored, so software cannot establish those facts.
+
+Command: `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 .conda-envs/opencap/bin/python -m pytest tests/test_change.py --basetemp=.pytest_cache/a4`
+```text
+collected 7 items
+tests/test_change.py .......                                             [100%]
+============================== 7 passed in 0.06s ===============================
+```
