@@ -1,0 +1,6 @@
+{
+  "angular_limit_deg": 5.0,
+  "translation_limit_m": null,
+  "status": "provisional: needs clinician review",
+  "origin": "Requested 5-degree default; McGinley attribution has not been verified. Not a validated CP cutoff."
+}

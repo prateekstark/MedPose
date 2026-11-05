@@ -38,3 +38,59 @@ existing repository-local pytest cache so generated fixtures stay in the repo.
 Review first: schema versioning, explicit unit confirmation, free-text privacy,
 and the A3 input contract. Joint angles alone do not specify foot positions or the
 ground plane. Contact detection must not be fabricated from angle peaks.
+
+A1 commit: `99cb985`.
+
+## A2 — Error estimates and reliability
+
+Implemented `medpose/errors.py`, an empty `medpose/config/errors.json`, and named
+limits in `medpose/config/reliability.json`. Lookup requires an exact mode,
+coordinate, plane and task match. Every numeric estimate requires measured,
+simulated or provisional source plus an origin and compatible unit. No entry
+means **error not yet measured**, never a fallback value. Duplicate rows, unknown
+schema versions, malformed rows and unit mismatches fail explicitly.
+
+Threshold inventory:
+
+| Config | Value | Source/status |
+|---|---|---|
+| angular_limit_deg | 5 degrees | User-requested default; **provisional: needs clinician review**. McGinley attribution was not verified and is not presented as a citation. |
+| translation_limit_m | absent | No translation cutoff invented; reliability remains unknown. |
+
+A measured error equal to the limit passes the configured check; strictly greater
+fails. Simulated/provisional estimates below the limit remain unknown. Every
+result preserves threshold status and origin. “Reliable” means only that the
+measured benchmark estimate meets the configured limit, not validation on this
+person. A provisional threshold remains provisional even when an estimate passes.
+
+Command:
+```sh
+PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 .conda-envs/opencap/bin/python -m pytest tests/test_trial.py tests/test_errors.py --basetemp=.pytest_cache/a2
+```
+Actual output:
+```text
+platform linux -- Python 3.9.25, pytest-8.4.2, pluggy-1.6.0
+collected 75 items
+tests/test_trial.py ..........................................           [ 56%]
+tests/test_errors.py .................................                   [100%]
+============================== 75 passed in 0.29s ==============================
+```
+
+No clinical formulas implemented in A1/A2. The degrees/radians conversion is a unit
+conversion. Tests exercise synthetic inputs, including simulated routing of the
+`measured` label; those tests are not human error measurements. No full-project
+regression run or browser/network-request check has been performed in these packages.
+
+## Pending work and review decision
+
+A3–A8 and B1–B2 are not implemented. A3 needs an input decision: the requested Trial
+contains angles and pelvis translations, not foot positions or a ground plane.
+The user has been asked whether to extend Trial with optional foot positions and
+a ground-plane convention or explicitly report contact detection unavailable.
+No contacts will be guessed from angle peaks. Work is paused at that package
+boundary pending this decision, preserving the requested package order.
+
+Review first: the contact-input decision; whether the provisional angular limit
+is suitable; the interpretation of reliable as benchmark-only; free-text fields
+cannot guarantee absence of identifiers. The schema has no personal identifier
+fields. Later reports must retain the caveats and provenance carried here.
