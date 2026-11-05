@@ -247,3 +247,35 @@ collected 2 items
 tests/test_report.py ..                                                  [100%]
 ============================== 2 passed in 0.07s ===============================
 ```
+
+A7 commit: `e2ec41d`.
+
+## A8 — Readable offline Trial viewer
+
+Replaced compressed code and URL loading with readable, dependency-free Canvas
+code. Supports Trial A/B local files, elapsed-time playback/scrubbing, orbit,
+zoom/preset views, synchronized curves, source-labelled error colours, optional
+local-video display and an explicit provisional confidence cutoff (unset by
+default). No external library is bundled or required. Trial JSON replaces the
+legacy OpenCap visualizer JSON input; it does not infer a Trial from that format.
+
+The stick figure is deliberately schematic: only supplied sagittal hip/knee
+coordinates drive simplified legs; missing coordinates leave segments absent.
+No full-body biomechanical reconstruction, participant body scaling or bone-image
+claim is made. Other coordinates remain visible in curves. Anatomical mode is
+disabled because mesh redistribution rights and a model-to-Trial mapping remain
+unverified. No meshes were opened or copied. Two trials align by elapsed time,
+not gait phase. Local video alignment must be checked by the user.
+
+Scripted offline check verifies no resource URLs/network APIs, no remote script
+or stylesheet resources, CSP `connect-src 'none'`, blob-only local media and no
+HTML injection via loaded strings. Node also checked JavaScript syntax and ran
+pure Trial-validation/timestamp tests through pytest. No browser network trace
+or full browser interaction/visual QA was run; these remain explicit QA gaps.
+
+Command: `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 .conda-envs/opencap/bin/python -m pytest tests/test_viewer.py --basetemp=.pytest_cache/a8`
+```text
+collected 3 items
+tests/test_viewer.py ...                                                 [100%]
+============================== 3 passed in 0.51s ===============================
+```
