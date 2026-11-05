@@ -227,3 +227,23 @@ collected 7 items
 tests/test_exercise.py .......                                           [100%]
 ============================== 7 passed in 0.04s ===============================
 ```
+
+A6 commit: `edb3c60`.
+
+## A7 — Offline HTML report
+
+`render_report` / `save_report` produce standalone HTML/SVG with coordinate curves,
+missing-frame counts, error labels, benchmark reliability, supports, recording
+mode, optional gait summaries and A5 prompts. Unknown/unreliable data remain
+visible in grey. Required research and individual-error caveats are included.
+Text is HTML-escaped; gaps are not connected. The output contains no scripts,
+external assets or outbound URLs; a restrictive content security policy is added.
+No dependencies added. Full browser visual QA remains a gap; automated tests
+inspect generated structure, escaping, missing points and prohibited resource tags.
+
+Command: `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 .conda-envs/opencap/bin/python -m pytest tests/test_report.py --basetemp=.pytest_cache/a7`
+```text
+collected 2 items
+tests/test_report.py ..                                                  [100%]
+============================== 2 passed in 0.07s ===============================
+```
