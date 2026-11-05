@@ -55,6 +55,26 @@ Record the checkerboard and movement videos with the same camera, lens, resoluti
 ## Licences
 OpenCap Core is Apache-2.0. OpenCap Monocular is PolyForm Noncommercial, and SMPL has its own non-commercial licence that you must accept yourself. MedPose's own code has no licence yet; choose one before any public release.
 
+
+## Open the review UI
+
+Open [the offline demo](medpose/ui/demo.html) directly in Chrome or another modern
+browser. It is a single HTML file with its video and Trial data embedded; no server
+or internet connection is needed. Use Play, scrub the timeline, rotate the model,
+select a joint, compare local Trial files or export an offline report.
+
+The sample is **synthetic**: its rendered walker video and motion curves come from
+the same invented data. No pose was recovered from video and no clinical accuracy
+is demonstrated. Attaching another local video does not run inference. Gait,
+exercise, MDC and pattern analysis remain in the Python modules; the browser does
+not fabricate clinical analysis. See [UI notes](docs/research/UI_DEMO.md).
+
+To rebuild the embedded demo from source:
+
+```bash
+.conda-envs/opencap/bin/python -m medpose.ui.build --output medpose/ui/demo.html
+```
+
 ## Research analysis layer
 
 Read [the build report](docs/research/BUILD_REPORT.md) for package commits, actual
