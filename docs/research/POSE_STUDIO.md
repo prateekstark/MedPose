@@ -100,11 +100,12 @@ ViTPose/YOLO weights remain in place. They are separate from this landmark studi
 The UI exposes their setup checklist but does not pretend this route is runnable.
 No cloud compute was provisioned, no spending started and no media uploaded.
 
-The user authorized licence acceptance and gated downloads, but authenticated
-SMPL and SMPLify account access was not available in this session. Their sites
-require registration/login; no licence acceptance or gated download was completed.
-The next step needs account access, then the required assets, dependencies and
-hardware can be checked. GPU access failed during this session. Do not treat a
+The user authorized the downloads and reported completing licence acceptance and
+sign-in. On 2026-11-08 the signed-in browser reached the official download page,
+but both Python model archives (v1.0.0 and v1.1.0) returned **504 Gateway Time-out**
+from `download.is.tue.mpg.de`. No licensed archive was downloaded or installed.
+Once the host is available, the required assets, dependencies and hardware still
+need to be checked. GPU access failed during the setup session. Do not treat a
 body mesh as a clinically validated skeleton, or describe a method as best without
 an appropriate comparison.
 
@@ -138,6 +139,16 @@ standalone viewer's setup button shows launch instructions and performs no netwo
 request, retaining its strict offline tests. Actual inference and all three model
 variants passed desktop/mobile browser checks with external DNS blocked.
 
-Browser access on 2026-11-08 exposed only the in-app browser, not the user's Chrome
-sign-ins. The licensed downloads therefore remain uncompleted, even though the
-user has authorized them. No claim is made that SMPL was accepted or downloaded.
+The earlier browser-access blocker was superseded when the user signed in through
+the in-app browser. The current download blocker is the official host's 504 error,
+observed for both package versions; no authentication credentials were extracted.
+
+Picture-flow clarification: **Open picture(s)** only loads media. **Estimate pose**
+is now a prominent green button, with explicit next-step instructions in the
+status banner and empty model panel. The old standalone viewer directs users to
+Pose Studio instead of implying it performs inference. The local Studio was
+reachable and reported all three models installed during this check.
+
+After this clarification, the targeted UI and actual-model checks completed with:
+`10 passed in 23.44s` using `tests/test_ui.py tests/test_pose_studio.py` and
+`.pytest_cache/pose-next-step`. Synthetic inputs only; no supplied picture processed.

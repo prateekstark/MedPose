@@ -148,7 +148,7 @@ function updateReviewPresentation() {
     $("model-empty-title").textContent = pictureMode && !hasFrames
         ? "No pose model generated" : hasFrames ? "No drawable pose in this frame" : "No movement data loaded";
     $("model-empty-detail").textContent = pictureMode && !hasFrames
-        ? "Picture viewing is supported, but a picture-to-pose engine is not connected. A single still also cannot show movement over time."
+        ? "Picture viewing is supported here, but a picture-to-pose engine is not connected to this Trial viewer. Open Pose Studio at 127.0.0.1:8765, add the picture there, then click Estimate pose."
         : hasFrames
             ? "The schematic view needs hip-flexion coordinates at this frame. Available coordinates can still be reviewed in the curves."
             : "Open a Trial with motion coordinates, or reset the synthetic demo. Attaching media alone does not estimate a pose.";
