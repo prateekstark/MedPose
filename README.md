@@ -11,6 +11,7 @@ Read [docs/DATA_POLICY.md](docs/DATA_POLICY.md) before recording anyone. Scienti
 |---|---|
 | 2+ cameras (OpenCap Core) | Runs on upstream's healthy iPhone test clip. **Not yet run on real Android footage** |
 | 1 Android phone or webcam (OpenCap Monocular) | Wrapper exists, but **has never completed a run here**: needs the SMPL licence, missing dependencies and a better GPU |
+| Local picture/video landmark studio | Runs locally on CPU with downloaded Lite, Full and Heavy models; synthetic checks only, not clinically validated |
 | Trial format, gait/exercise summaries, change checks, prompts, reports and benchmarks | Research implementations with synthetic tests; thresholds provisional, error table empty, no validation on people |
 
 ## Layout
@@ -56,7 +57,30 @@ Record the checkerboard and movement videos with the same camera, lens, resoluti
 OpenCap Core is Apache-2.0. OpenCap Monocular is PolyForm Noncommercial, and SMPL has its own non-commercial licence that you must accept yourself. MedPose's own code has no licence yet; choose one before any public release.
 
 
-## Open the review UI
+## Estimate pose from pictures or video
+
+Start the local Pose Studio:
+
+```bash
+.conda-envs/opencap/bin/python -m medpose.ui.serve
+```
+
+Open http://127.0.0.1:8765/, choose picture(s) or a video, and click **Estimate
+pose**. It shows a detected overlay, rotatable estimated 3D landmark skeleton,
+video playback, geometric landmark bends, and JSON/Trial exports. Media stays
+in the browser. **Try synthetic picture/video** demonstrates actual inference
+on an AI-generated adult; the video repeats a still and is not a gait benchmark.
+
+Lite, Full and Heavy are installed locally. The Models panel offers downloads
+when a weight file is missing; Heavy is the highest-capacity option here, not a
+validated best model for CP. For a fresh checkout run
+`.conda-envs/opencap/bin/python tools/setup_pose.py` once. See
+[Pose Studio details and limitations](docs/research/POSE_STUDIO.md).
+
+The separate OpenCap body-mesh route still requires authenticated SMPL/SMPLify
+access, compatible dependencies and hardware. No cloud service is connected.
+
+## Open the standalone Trial review UI
 
 Open [the offline demo](medpose/ui/demo.html) directly in Chrome or another modern
 browser. It is a single HTML file with its video and Trial data embedded; no server
