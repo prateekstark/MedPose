@@ -100,14 +100,37 @@ ViTPose/YOLO weights remain in place. They are separate from this landmark studi
 The UI exposes their setup checklist but does not pretend this route is runnable.
 No cloud compute was provisioned, no spending started and no media uploaded.
 
-The user authorized the downloads and reported completing licence acceptance and
-sign-in. On 2026-11-08 the signed-in browser reached the official download page,
-but both Python model archives (v1.0.0 and v1.1.0) returned **504 Gateway Time-out**
-from `download.is.tue.mpg.de`. No licensed archive was downloaded or installed.
-Once the host is available, the required assets, dependencies and hardware still
-need to be checked. GPU access failed during the setup session. Do not treat a
-body mesh as a clinically validated skeleton, or describe a method as best without
-an appropriate comparison.
+The user supplied `SMPL_python_v.1.1.0.zip` after accepting its licence. The
+male, female and neutral models are now installed under `.conda-envs/smpl/`, with
+SHA-256 provenance and the supplied licence. Model-file links connect this store
+to `opencap-monocular/WHAM/dataset/body_models/smpl/`, using the filenames that
+WHAM, SLAMHR and OpenCap's optimisation code expect. No licensed assets enter git.
+The archive includes neutral, so no separate SMPLify download is needed for it.
+
+To reproduce the import from a user-licensed archive:
+
+```sh
+.conda-envs/opencap/bin/python -m medpose.engine.smpl_assets install /path/to/SMPL_python_v.1.1.0.zip
+.conda-envs/opencap/bin/python -m medpose.engine.smpl_assets status
+```
+
+The installer selects only the three known model members and the licence; it
+never runs archive scripts or unpickles during extraction, and refuses to replace
+unrelated installed models. All models loaded through the existing `smplx`
+dependency and generated two synthetic poses on CPU: 6,890 vertices and 13,776
+faces each. The 300-component archive works with the 10 betas used by the existing
+pipeline. A separate CUDA forward pass with the neutral model also passed on the
+NVIDIA GeForce 940MX (4,096 MiB, compute capability 5.0), using PyTorch 2.1.2+cu118.
+Peak tensor allocation for that small SMPL-only check was 27.8 MiB; this is **not**
+a memory estimate for full WHAM inference.
+
+Full inference remains unverified: `J_regressor_wham.npy`,
+`J_regressor_h36m.npy`, `J_regressor_feet.npy` and the `ultralytics` dependency
+are missing, and other full-pipeline requirements have not been validated. The
+local UI now reads `/api/advanced` to show actual SMPL installation status while
+keeping the full body-mesh pipeline marked unavailable. MediaPipe picture/video
+inference remains separate from SMPL; installing geometry does not fit it to a
+photograph. No patient photograph or recording was processed.
 
 - [SMPL registration](https://smpl.is.tue.mpg.de/register.php)
 - [SMPL model licence](https://smpl.is.tue.mpg.de/modellicense.html)
@@ -139,9 +162,10 @@ standalone viewer's setup button shows launch instructions and performs no netwo
 request, retaining its strict offline tests. Actual inference and all three model
 variants passed desktop/mobile browser checks with external DNS blocked.
 
-The earlier browser-access blocker was superseded when the user signed in through
-the in-app browser. The current download blocker is the official host's 504 error,
-observed for both package versions; no authentication credentials were extracted.
+The earlier browser-access blocker was superseded by sign-in, followed by a
+temporary 504 error from the official download host. Both blockers were resolved
+for model installation when the user supplied the downloaded archive. No
+authentication credentials were extracted.
 
 Picture-flow clarification: **Open picture(s)** only loads media. **Estimate pose**
 is now a prominent green button, with explicit next-step instructions in the
@@ -152,3 +176,14 @@ reachable and reported all three models installed during this check.
 After this clarification, the targeted UI and actual-model checks completed with:
 `10 passed in 23.44s` using `tests/test_ui.py tests/test_pose_studio.py` and
 `.pytest_cache/pose-next-step`. Synthetic inputs only; no supplied picture processed.
+
+SMPL integration verification (2026-11-08):
+
+```text
+PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 .conda-envs/opencap/bin/python -m pytest tests/test_smpl_assets.py tests/test_pose_studio.py tests/test_engine_wrappers.py --basetemp=.pytest_cache/smpl-integration
+======================= 28 passed, 19 warnings in 41.00s =======================
+```
+
+Warnings come from the upstream Python-2-era Chumpy/SciPy/NumPy model loader.
+The separate synthetic GPU calculation completed successfully. The full
+repository suite was not repeated for this asset-integration change.

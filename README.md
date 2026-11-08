@@ -10,7 +10,7 @@ Read [docs/DATA_POLICY.md](docs/DATA_POLICY.md) before recording anyone. Scienti
 | Mode | State |
 |---|---|
 | 2+ cameras (OpenCap Core) | Runs on upstream's healthy iPhone test clip. **Not yet run on real Android footage** |
-| 1 Android phone or webcam (OpenCap Monocular) | Wrapper exists, but **has never completed a run here**: needs the SMPL licence, missing dependencies and a better GPU |
+| 1 Android phone or webcam (OpenCap Monocular) | Wrapper exists, but **has never completed a run here**: SMPL installed and verified on CPU/940MX, but auxiliary assets and dependencies remain missing |
 | Local picture/video landmark studio | Runs locally on CPU with downloaded Lite, Full and Heavy models; synthetic checks only, not clinically validated |
 | Trial format, gait/exercise summaries, change checks, prompts, reports and benchmarks | Research implementations with synthetic tests; thresholds provisional, error table empty, no validation on people |
 
@@ -77,8 +77,10 @@ validated best model for CP. For a fresh checkout run
 `.conda-envs/opencap/bin/python tools/setup_pose.py` once. See
 [Pose Studio details and limitations](docs/research/POSE_STUDIO.md).
 
-The separate OpenCap body-mesh route still requires authenticated SMPL/SMPLify
-access, compatible dependencies and hardware. No cloud service is connected.
+SMPL 1.1.0 male/female/neutral models are installed and linked to OpenCap.
+Synthetic mesh generation passed on CPU and the NVIDIA 940MX. The separate full
+OpenCap body-mesh route still needs auxiliary regressors and dependencies; it has
+not completed an inference run. No cloud service is connected.
 
 ## Open the standalone Trial review UI
 

@@ -132,3 +132,21 @@ The compatible inference dependencies and public checkpoints are in place, but f
 ## Privacy note
 
 The hosted OpenCap service uploads videos for cloud processing. Its current terms say submitted video is visible to the development team and may be used for algorithm development; the investigator must obtain participant consent, and the hosted service is for noncommercial academic/nonprofit research and education. Use local processing for patient footage unless the applicable consent and institutional approvals explicitly allow the hosted route. [Terms](https://www.opencap.ai/terms-conditions)
+
+## SMPL installation update — 2026-11-08
+
+The user-supplied SMPL Python 1.1.0 archive is now installed. Male, female and
+neutral models are stored in `.conda-envs/smpl/` and linked under WHAM's expected
+`dataset/body_models/smpl/` directory. The neutral model is included in this
+archive; a separate SMPLify account is not needed for that asset.
+
+All three models passed synthetic forward calculations on CPU with 10 shape
+coefficients. Neutral also passed on the NVIDIA GeForce 940MX, 4 GB, using the
+project's PyTorch 2.1.2+cu118. Earlier restricted-shell GPU failures do not reflect
+this successful hardware check. This small SMPL calculation does not establish
+that full WHAM fits within GPU memory.
+
+Full Monocular inference remains incomplete: auxiliary joint-regressor files and
+`ultralytics` are still missing, and the complete pipeline has not been verified.
+Run `python -m medpose.engine.smpl_assets status` in the project environment for
+the SMPL asset status. See `docs/research/POSE_STUDIO.md` for installation and tests.

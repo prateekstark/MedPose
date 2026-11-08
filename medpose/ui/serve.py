@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import json
+from medpose.engine.smpl_assets import status as smpl_status
 from medpose.ui.models import MODELS, catalog, installed, model_path, start_install
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import mimetypes
@@ -69,6 +70,9 @@ class Handler(BaseHTTPRequestHandler):
         if host not in ('127.0.0.1:%d' % self.server.server_port,
                         'localhost:%d' % self.server.server_port):
             self.send_error(403)
+            return
+        if urlsplit(self.path).path == '/api/advanced':
+            self.send_json(smpl_status())
             return
         if urlsplit(self.path).path == '/api/models':
             self.send_json(catalog())
