@@ -10,7 +10,7 @@ Read [docs/DATA_POLICY.md](docs/DATA_POLICY.md) before recording anyone. Scienti
 | Mode | State |
 |---|---|
 | 2+ cameras (OpenCap Core) | Runs on upstream's healthy iPhone test clip. **Not yet run on real Android footage** |
-| 1 Android phone or webcam (OpenCap Monocular) | Wrapper exists, but **has never completed a run here**: SMPL installed and verified on CPU/940MX, but auxiliary assets and dependencies remain missing |
+| 1 Android phone or webcam (OpenCap Monocular) | Wrapper exists, but **has never completed a run here**: local HMR2/WHAM mesh adapters added; full calibrated OpenCap run remains unverified |
 | Local picture/video landmark studio | Runs locally on CPU with downloaded Lite, Full and Heavy models; synthetic checks only, not clinically validated |
 | Trial format, gait/exercise summaries, change checks, prompts, reports and benchmarks | Research implementations with synthetic tests; thresholds provisional, error table empty, no validation on people |
 
@@ -77,10 +77,13 @@ validated best model for CP. For a fresh checkout run
 `.conda-envs/opencap/bin/python tools/setup_pose.py` once. See
 [Pose Studio details and limitations](docs/research/POSE_STUDIO.md).
 
-SMPL 1.1.0 male/female/neutral models are installed and linked to OpenCap.
-Synthetic mesh generation passed on CPU and the NVIDIA 940MX. The separate full
-OpenCap body-mesh route still needs auxiliary regressors and dependencies; it has
-not completed an inference run. No cloud service is connected.
+SMPL 1.1.0 male/female/neutral models and auxiliary assets are installed.
+Open **Body mesh studio** at http://127.0.0.1:8765/mesh for HMR2 picture surfaces
+and short-video meshes. Select media and click **Generate mesh**. The mesh can be
+rotated and exported; a picture produces one static pose. Media for this route
+is passed to local Python in memory, with external inference networking blocked.
+No cloud service is connected. This is separate from calibrated OpenCap clinical
+fitting. See [setup and boundaries](docs/research/POSE_STUDIO.md).
 
 ## Open the standalone Trial review UI
 

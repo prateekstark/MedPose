@@ -150,3 +150,15 @@ Full Monocular inference remains incomplete: auxiliary joint-regressor files and
 `ultralytics` are still missing, and the complete pipeline has not been verified.
 Run `python -m medpose.engine.smpl_assets status` in the project environment for
 the SMPL asset status. See `docs/research/POSE_STUDIO.md` for installation and tests.
+
+
+## Local body-mesh adapter update — 2026-11-08
+
+The earlier missing-asset notes above are superseded: the official auxiliary
+regressors and compatible Ultralytics dependency are now installed. `/mesh` in
+Pose Studio connects HMR2 picture/short-video surfaces and WHAM temporal meshes
+through a local Python worker. HMR2 passed real inference on the synthetic adult
+using the 940MX (2,688.9 MiB peak allocation). This is distinct from the full
+calibrated OpenCap optimisation workflow. No patient recordings were processed.
+Run `.conda-envs/opencap/bin/python -m medpose.ui.serve` and use **Body mesh studio**.
+See `docs/research/POSE_STUDIO.md` for limits and reproducible setup.

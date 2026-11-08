@@ -53,7 +53,7 @@ Downloaded runtime and weights stay under ignored `.conda-envs/pose-web/`, not g
 The left overlay shows image landmarks. The rotatable model uses the returned
 33 hip-centred world landmarks, not generic limb lengths invented from the demo.
 Depth and scale are model estimates, not a calibrated ground coordinate frame or
-an image of the person's bones. No anatomical mesh is generated.
+an image of the person's bones. This landmark workspace generates no body surface; use `/mesh` for that output.
 
 Landmark knee and elbow bends use `180° - acos(dot(a,b)/(|a||b|))`, with vectors
 from the middle landmark to the other two points. A straight limb is 0°, an
@@ -86,8 +86,9 @@ retains its no-network behavior. Neither makes external inference calls. Selecte
 media is decoded in the browser and transferred only to its local worker.
 
 The server uses an explicit route allowlist, never serves the repository or
-patient directories, accepts no media-upload endpoint, and suppresses request
-logs. Model installation accepts only a fixed model ID with matching Origin/Host,
+patient directories, and suppresses request logs. The landmark workspace has no
+media upload. The separate mesh workspace uses the protected loopback-only
+`/api/mesh` endpoint described below. Model installation accepts only a fixed model ID with matching Origin/Host,
 a custom action header and an empty request body; it downloads only pinned public
 weights. A CSP limits application and worker fetches to the same origin. Tests
 block external DNS, capture browser/worker requests and assert local GET-only
@@ -97,7 +98,7 @@ traffic during inference. No account, cloud endpoint or telemetry is configured.
 
 The existing OpenCap/WHAM wrappers and approximately 6.1 GB of public WHAM/HMR2/
 ViTPose/YOLO weights remain in place. They are separate from this landmark studio.
-The UI exposes their setup checklist but does not pretend this route is runnable.
+The `/mesh` workspace connects local HMR2 and WHAM adapters to the browser.
 No cloud compute was provisioned, no spending started and no media uploaded.
 
 The user supplied `SMPL_python_v.1.1.0.zip` after accepting its licence. The
@@ -124,18 +125,52 @@ NVIDIA GeForce 940MX (4,096 MiB, compute capability 5.0), using PyTorch 2.1.2+cu
 Peak tensor allocation for that small SMPL-only check was 27.8 MiB; this is **not**
 a memory estimate for full WHAM inference.
 
-Full inference remains unverified: `J_regressor_wham.npy`,
-`J_regressor_h36m.npy`, `J_regressor_feet.npy` and the `ultralytics` dependency
-are missing, and other full-pipeline requirements have not been validated. The
-local UI now reads `/api/advanced` to show actual SMPL installation status while
-keeping the full body-mesh pipeline marked unavailable. MediaPipe picture/video
-inference remains separate from SMPL; installing geometry does not fit it to a
-photograph. No patient photograph or recording was processed.
+### Body mesh studio
 
-- [SMPL registration](https://smpl.is.tue.mpg.de/register.php)
-- [SMPL model licence](https://smpl.is.tue.mpg.de/modellicense.html)
-- [WHAM registration requirements](https://github.com/yohanshin/WHAM#registration)
-- See `OPENCAP_START.md` for existing calibration and pipeline requirements.
+Open `/mesh`, select a picture or video, choose the model, and click **Generate
+mesh**. HMR2 generates 6,890-vertex SMPL surfaces from detected person crops.
+For videos it processes frames independently. WHAM estimates a sequence using
+ViTPose, HMR2 features and its temporal network. Its adapter requires one visible
+person, at least 30 frames, and a stationary camera. It does not run SLAM or claim
+calibrated global motion. Both routes limit video to 120 frames and uploads to
+64 MB. Partial/multiple detections remain missing for HMR2; WHAM rejects a clip
+without a continuous single-person detection. This is not reliable identity
+tracking. No clinical joint-angle Trial is exported from mesh predictions.
+
+The browser passes only selected media to local Python. Linux anonymous memory
+files transfer media to a child process; no source media is written to disk.
+Results are kept in RAM, limited to two jobs, and can be exported explicitly.
+Cancel terminates the worker; a thirty-minute timeout bounds a job. Exact Origin,
+Host and action headers are required. Inference disables outbound socket
+connections and automatic dependency downloads. Model setup is separate.
+Generic body-model estimates are not anatomical scans; pediatric proportions,
+clothing, occlusion, depth and scale remain limitations, not measured accuracy.
+
+Install missing auxiliary assets and adapter packages in the existing environment:
+
+```sh
+.conda-envs/opencap/bin/python tools/setup_advanced.py
+```
+
+The script pins Ultralytics 8.0.100, seaborn 0.12.2, py-cpuinfo 9.0.0,
+thop 0.1.1.post2209072238 and sentry-sdk 1.45.0 without upgrading the OpenCap
+scientific stack. Telemetry is disabled and network calls blocked at inference.
+The official WHAM auxiliary archive has SHA-256
+`533a8b6b05ba3bc3d35c1dcaec757a4164a669625116a16d30d7642f3b200c8c`.
+Only seven known regular-file members are extracted; no archive code executes.
+Public large checkpoints remain reproducible with `tools/download_public_weights.py`.
+See [WHAM](https://github.com/yohanshin/WHAM) and
+[4D-Humans](https://github.com/shubham-goel/4D-Humans) for upstream methods.
+
+A real HMR2 run on the synthetic adult produced finite geometry on the 940MX:
+24.04 seconds including detection/loading, 2,688.9 MiB peak tensor allocation.
+WHAM also produced 30 finite 6,890-vertex meshes from a synthetic 3-second
+stationary-person video: 246.68 seconds, 2,670.1 MiB peak GPU allocation.
+The **Try synthetic video** button loads this generated clip. It is not a walking
+recording or an accuracy benchmark. These are functionality checks only.
+Full calibrated OpenCap fitting remains separate and unverified; it requires
+matching camera calibration and subject metadata. No cloud account, spending,
+or upload has been configured.
 
 ## Verification
 
@@ -187,3 +222,16 @@ PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 .conda-envs/opencap/bin/python -m pytest tests/
 Warnings come from the upstream Python-2-era Chumpy/SciPy/NumPy model loader.
 The separate synthetic GPU calculation completed successfully. The full
 repository suite was not repeated for this asset-integration change.
+
+Body-mesh checks added on 2026-11-08 cover finite geometry, invalid media,
+request-origin guards, upload limits, concurrent-job rejection, cancellation,
+anonymous-memory file transfer, archive checksums and real browser-to-GPU
+inference. Run the optional heavier check with:
+
+```sh
+MEDPOSE_TEST_MESH=1 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 .conda-envs/opencap/bin/python -m pytest tests/test_mesh_studio.py::test_mesh_browser_with_installed_models
+```
+
+It uses only the committed AI-generated adult, checks a visible mesh and export,
+and verifies that browser traffic stays on the loopback server. No personal
+pictures or patient recordings are used. Model files and test output stay ignored.

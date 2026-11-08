@@ -3,7 +3,8 @@ from __future__ import annotations
 
 import argparse
 import json
-from medpose.engine.smpl_assets import status as smpl_status
+from medpose.engine.advanced import readiness as smpl_status
+from medpose.ui import mesh_jobs
 from medpose.ui.models import MODELS, catalog, installed, model_path, start_install
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import mimetypes
@@ -19,7 +20,9 @@ ROUTES = {
     '/pose.js': UI / 'pose.js', '/pose.css': UI / 'pose.css',
     '/pose_math.js': UI / 'pose_math.js', '/pose_worker.js': UI / 'pose_worker.js',
     '/review': UI / 'demo.html',
+    '/mesh': UI / 'mesh.html', '/mesh.js': UI / 'mesh.js',
     '/samples/synthetic-adult.png': UI / 'samples' / 'synthetic-adult.png',
+    '/samples/synthetic-mesh.mp4': ROOT / '.conda-envs/advanced-assets/synthetic-mesh.mp4',
     '/samples/synthetic-still.mp4': ASSETS / 'synthetic-still.mp4',
     '/assets/vision_bundle.cjs': ASSETS / 'package' / 'vision_bundle.cjs',
 }
@@ -52,6 +55,23 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         origin = self.headers.get('Origin', '')
+        if self.path.startswith('/api/mesh'):
+            if (not self.valid_host() or origin != 'http://' + self.headers.get('Host', '')
+                    or self.headers.get('Transfer-Encoding')):
+                self.send_error(403); return
+            action = self.headers.get('X-MedPose-Action')
+            if self.path.endswith('/cancel') and action == 'cancel' and self.headers.get('Content-Length','0') == '0':
+                self.send_json({'cancelled':mesh_jobs.cancel(self.path.split('/')[-2])}); return
+            if self.path != '/api/mesh' or action != 'infer':
+                self.send_error(403); return
+            try:
+                self.connection.settimeout(30)
+                key = mesh_jobs.start(self.rfile, int(self.headers.get('Content-Length','0')),
+                    self.headers.get('X-MedPose-Media'), self.headers.get('X-MedPose-Engine'))
+                self.send_json({'id':key}, 202)
+            except (ValueError, RuntimeError, OSError) as error:
+                self.send_json({'error':str(error)}, 400)
+            return
         if (not self.valid_host() or self.headers.get('X-MedPose-Action') != 'install'
                 or origin != 'http://' + self.headers.get('Host', '')
                 or self.headers.get('Content-Length', '0') != '0'
@@ -70,6 +90,10 @@ class Handler(BaseHTTPRequestHandler):
         if host not in ('127.0.0.1:%d' % self.server.server_port,
                         'localhost:%d' % self.server.server_port):
             self.send_error(403)
+            return
+        if self.path.startswith('/api/mesh/'):
+            result = mesh_jobs.snapshot(self.path.split('/')[-1])
+            self.send_json(result or {'error':'Result expired or unknown'}, 200 if result else 404)
             return
         if urlsplit(self.path).path == '/api/advanced':
             self.send_json(smpl_status())
@@ -114,12 +138,12 @@ def main():
     parser.add_argument('--port', type=int, default=8765)
     parser.add_argument('--no-browser', action='store_true')
     args = parser.parse_args()
-    missing = [str(p.relative_to(ROOT)) for p in ROUTES.values() if p.suffix != '.task' and not p.is_file()]
+    missing = [str(p.relative_to(ROOT)) for p in ROUTES.values() if p.suffix != '.task' and p.name != 'synthetic-mesh.mp4' and not p.is_file()]
     if missing:
         parser.error('Missing local assets. Run .conda-envs/opencap/bin/python tools/setup_pose.py first. Missing: ' + ', '.join(missing))
     server = ThreadingHTTPServer(('127.0.0.1', args.port), Handler)
     url = 'http://127.0.0.1:%d/' % server.server_port
-    print('MedPose ready: ' + url + ' (local files only; no uploads)', flush=True)
+    print('MedPose ready: ' + url + ' (local processing only; no cloud uploads)', flush=True)
     if not args.no_browser:
         webbrowser.open(url)
     try:
