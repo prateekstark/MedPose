@@ -95,33 +95,47 @@ def _summary(values):
                 sd=float(finite.std(ddof=1)) if len(finite) > 1 else None, count=int(len(finite)))
 
 
-def analyse_gait(trial, config, *, planes, task="walking", errors=None, samples=101, progression_direction=None):
+def analyse_gait(trial, config, *, planes, task="walking", errors=None, samples=101, progression_direction=None,
+                 events=None, min_confidence=None):
     """Normalize complete cycles without interpolating over missing/low-confidence values.
 
     Cadence is 120 / ipsilateral cycle duration (an alternating-step assumption),
     labelled provisional. Stance is geometric proximity duration / cycle duration.
     Speed/step length are unavailable here: no progression axis or foot-to-pelvis
     frame relationship is guessed. No forces are calculated.
+
+    ``events`` may supply precomputed per-side events (e.g. from
+    ``medpose.clinical.events.zeni_events``) in the ``detect_contacts`` format;
+    then ``config`` may be None and ``min_confidence`` (or None to ignore
+    confidence) sets which coordinate frames are excluded.
     """
     if type(samples) is not int or samples < 2:
         raise ValueError("samples must be an integer >=2")
     if not isinstance(planes, dict) or any(n not in planes or not isinstance(planes[n], str) or not planes[n] for n in trial.coordinate_names):
         raise ValueError("Provide an explicit anatomical plane for every coordinate")
+    if events is None and not isinstance(config, ContactConfig):
+        raise ValueError("Provide a ContactConfig or precomputed events")
+    if events is not None and (not isinstance(events, dict) or set(events) != {"left", "right"}):
+        raise ValueError("events must map left and right to event results")
+    if config is not None and min_confidence is None:
+        min_confidence = config.min_confidence
+    if min_confidence is not None and not 0 <= min_confidence <= 1:
+        raise ValueError("min_confidence must lie in [0, 1]")
     errors = ErrorTable.load() if errors is None else errors
     output = dict(source="provisional", error_label="error not yet measured", sides={}, differences={},
                   speed=dict(status="unavailable", reason="explicit progression-axis analysis not implemented", error_label="error not yet measured"),
                   step_length=dict(status="unavailable", reason="explicit progression-axis analysis not implemented", error_label="error not yet measured"))
     for side in ("left", "right"):
-        events = detect_contacts(trial, side, config)
-        cycles = events["cycles"]
+        side_events = detect_contacts(trial, side, config) if events is None else events[side]
+        cycles = side_events["cycles"]
         durations = [trial.time[c["stop"]] - trial.time[c["start"]] for c in cycles]
         stance = [100 * (trial.time[c["departure"]] - trial.time[c["start"]]) / duration for c, duration in zip(cycles, durations)]
-        data = dict(events=events, duration_s=_summary(durations), stance_percent=_summary(stance),
+        data = dict(events=side_events, duration_s=_summary(durations), stance_percent=_summary(stance),
                     cadence_steps_min=_summary([120 / d for d in durations]), coordinates={})
         for j, name in enumerate(trial.coordinate_names):
             normalized, ranges, peaks, troughs, low_frames = [], [], [], [], []
-            if trial.confidence is not None:
-                low_frames = np.flatnonzero(np.isnan(trial.confidence[:, j]) | (trial.confidence[:, j] < config.min_confidence)).tolist()
+            if trial.confidence is not None and min_confidence is not None:
+                low_frames = np.flatnonzero(np.isnan(trial.confidence[:, j]) | (trial.confidence[:, j] < min_confidence)).tolist()
             for cycle in cycles:
                 start, stop = cycle["start"], cycle["stop"]
                 values = trial.values[start:stop + 1, j]
@@ -164,9 +178,9 @@ def analyse_gait(trial, config, *, planes, task="walking", errors=None, samples=
                 for c in output["sides"][side]["events"]["cycles"]:
                     a, b = c["start"], c["stop"]
                     valid = np.isfinite(pelvis[a:b + 1]).all()
-                    if trial.confidence is not None:
+                    if trial.confidence is not None and min_confidence is not None:
                         conf = trial.confidence[a:b + 1, indices]
-                        valid = valid and np.isfinite(conf).all() and (conf >= config.min_confidence).all()
+                        valid = valid and np.isfinite(conf).all() and (conf >= min_confidence).all()
                     values.append(float((pelvis[b] - pelvis[a]) @ axis / (trial.time[b] - trial.time[a])) if valid else np.nan)
                 speed[side] = _summary(values)
             output["speed"] = dict(status="signed progression speed", sides=speed, unit="m/s",

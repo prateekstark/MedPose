@@ -17,6 +17,7 @@ from conftest import ROOT
     "anywhere/cameraIntrinsics.pickle",
     "opencap-core/Data/s1/sessionMetadata.yaml",
     "opencap-monocular/results/out.json",
+    "docs/private/CLINICAL_ROADMAP.md",
 ])
 def test_git_ignores_patient_data(path):
     result = subprocess.run(["git", "check-ignore", "-q", path], cwd=ROOT)

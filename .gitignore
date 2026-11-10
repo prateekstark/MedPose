@@ -12,6 +12,9 @@ normalized/
 *.pkl
 *.c3d
 
+# Private clinical notes about a specific person; never commit. See docs/DATA_POLICY.md.
+docs/private/
+
 # Upstream checkouts: pinned by upstream.lock.json and patches/, not vendored.
 opencap-core/
 opencap-monocular/

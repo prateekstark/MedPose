@@ -6,6 +6,8 @@ Offline 3D movement analysis from ordinary cameras, for cerebral palsy research.
 
 Read [docs/DATA_POLICY.md](docs/DATA_POLICY.md) before recording anyone. Scientific limits and the Android setup are in [OPENCAP_START.md](OPENCAP_START.md).
 
+Clinical planning notes, the recording protocol and the ground-truth guide describe a specific person, so they live in `docs/private/`, which git ignores. Keep them on the local machine only.
+
 ## Status
 | Mode | State |
 |---|---|
@@ -13,6 +15,8 @@ Read [docs/DATA_POLICY.md](docs/DATA_POLICY.md) before recording anyone. Scienti
 | 1 Android phone or webcam (OpenCap Monocular) | Wrapper exists, but **has never completed a run here**: local HMR2/WHAM mesh adapters added; full calibrated OpenCap run remains unverified |
 | Local picture/video landmark studio | Runs locally on CPU with downloaded Lite, Full and Heavy models; synthetic checks only, not clinically validated |
 | Trial format, gait/exercise summaries, change checks, prompts, reports and benchmarks | Research implementations with synthetic tests; thresholds provisional, error table empty, no validation on people |
+| OpenCap → Trial, Zeni gait events, gait parameters, clinician gait report | Built and tested on generated walking only. **Not yet run on a real recording** |
+| Comparison with a gait lab or benchmark (C3D/CSV/.mot, time alignment, Bland–Altman, event timing) | Built and tested on generated references. No real reference compared yet |
 
 ## Layout
 | Path | Purpose |
@@ -20,7 +24,10 @@ Read [docs/DATA_POLICY.md](docs/DATA_POLICY.md) before recording anyone. Scienti
 | `medpose/capture/video.py` | Makes phone and webcam video upright and constant-rate |
 | `medpose/capture/intrinsics.py` | Checkerboard calibration, with a quality gate |
 | `medpose/subject.py` | Requires measured height and mass; no adult defaults |
-| `medpose/engine/` | `core_stage`, `core_run` and `mono_run` wrappers around OpenCap |
+| `medpose/engine/` | `core_stage`, `core_run` and `mono_run` wrappers around OpenCap; `opencap_trial` turns Core output into a Trial |
+| `medpose/clinical/` | Gait events (`events`), cycle analysis (`gait`), parameters and GPS-style score (`parameters`), change, patterns, exercise |
+| `medpose/analyse.py` | One command from Trial to `gait.json` and `report.html`; builds reference curves |
+| `benchmarks/` | Metrics, time alignment, agreement statistics, lab-file loaders, convention mappings and `compare` |
 | `medpose/viewer/viewer.html` | Offline Trial viewer with schematic stick figures and curves; uploads nothing |
 | `tests/` | Test suite, using synthetic footage only |
 | `tools/download_public_weights.py` | Fetches public checkpoints, excluding SMPL |
@@ -38,6 +45,8 @@ Use the project environment for everything, and run from this folder:
 .conda-envs/opencap/bin/python -m pytest
 ```
 
+`pyproject.toml` disables the system ROS pytest plugins, which otherwise crash collection on this machine.
+
 Calibrate each camera for its exact lens and video mode:
 
 ```bash
@@ -47,6 +56,16 @@ Calibrate each camera for its exact lens and video mode:
 Calibration is refused if it fails the quality gate, and nothing is saved. The default limits (1 px reprojection error, 50% image coverage) are rules of thumb that can be changed with `--max-rms` and `--min-coverage`.
 
 The full multi-camera and single-camera steps are in [OPENCAP_START.md](OPENCAP_START.md).
+
+After OpenCap Core has processed a session, turn one walking pass into a report (run from your own terminal, with files under `patient_data/`):
+
+```bash
+.conda-envs/opencap/bin/python -m medpose.engine.opencap_trial --mot <trial>.mot --trc <trial>.trc \
+  --mode 2_phone --cameras 2 --support "posterior walker" --output trial.json
+.conda-envs/opencap/bin/python -m medpose.analyse run trial.json --output-dir report/
+.conda-envs/opencap/bin/python -m benchmarks.compare --prediction trial.json --reference lab.c3d \
+  --lag-source "sync event" --lag <seconds> --output agreement.json   # optional, against a lab
+```
 
 ## Video handling
 OpenCap was built around iPhone recordings, so every other video is normalised before OpenCap sees it. Orientation is baked into the pixels, variable frame rates become constant, and the result is an upright `.mov` with frequent keyframes. Any format ffmpeg reads works, including webcam `.mkv`, `.avi`, `.webm` and MJPEG.

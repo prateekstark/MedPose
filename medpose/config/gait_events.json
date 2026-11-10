@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "min_step_interval_s": 0.4,
+  "max_gap_s": 0.1,
+  "min_distance_m": 1.0,
+  "min_straightness": 0.8,
+  "min_confidence": null,
+  "status": "provisional: needs clinician review",
+  "origin": "Engineering starting points, not validated. min_step_interval_s only stops one foot being given two events of the same kind within 0.4 s (a child's gait cycle, even with a walker, is expected to be longer; check). max_gap_s refuses to bridge missing data longer than 0.1 s. A pass must travel at least 1 m, nearly straight (net/path >= 0.8), so turns are excluded. Confidence is ignored because OpenCap Core provides none."
+}

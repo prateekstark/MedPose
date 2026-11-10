@@ -63,3 +63,19 @@ def test_file_without_a_header_is_refused(tmp_path):
     path.write_text("")
     with pytest.raises(ValueError, match="endheader"):
         compare_mot.read_mot(path)
+
+
+def test_different_frame_rates_are_matched_by_time_not_row(tmp_path):
+    # b samples the same ramp at twice the rate; row-by-row comparison would report large errors.
+    a = write_mot(tmp_path / "a.mot", [(t / 10, 100 * t / 10, 1) for t in range(5)])
+    b = write_mot(tmp_path / "b.mot", [(t / 20, 100 * t / 20, 1) for t in range(9)])
+    result = compare_mot.compare(a, b)
+    assert result["frames_compared"] == 5
+    assert result["rms"]["knee_angle_r"] == pytest.approx(0.0, abs=1e-9)
+
+
+def test_files_without_shared_time_are_refused(tmp_path):
+    a = write_mot(tmp_path / "a.mot", [(0, 1, 1), (0.1, 2, 1)])
+    b = write_mot(tmp_path / "b.mot", [(5, 1, 1), (5.1, 2, 1)])
+    with pytest.raises(ValueError, match="share no time range"):
+        compare_mot.compare(a, b)

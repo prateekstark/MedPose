@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "name": "plugin_gait",
+  "description": "Vicon Plug-in Gait / CGM1 model outputs (also pyCGM2 CGM1.0) mapped to OpenSim LaiUhlrich2022 coordinate names. X/Y/Z are the sagittal/frontal/transverse components stored in the C3D model-output points.",
+  "caveat": "Sign agreement is not offset agreement: zero positions differ (e.g. Plug-in Gait ankle 0 deg comes from the static-trial foot vector; OpenSim ankle 0 deg is the model's neutral). Use offset-removed statistics alongside raw ones, and confirm signs with a static standing trial before trusting any frontal or transverse comparison. Ask the lab which model they run; CGM2.x, 6DoF and other marker sets need their own mapping file.",
+  "entries": [
+    {"reference": "LHipAngles.X", "coordinate": "hip_flexion_l", "sign": 1, "plane": "sagittal", "status": "enabled", "note": "Flexion positive in both"},
+    {"reference": "RHipAngles.X", "coordinate": "hip_flexion_r", "sign": 1, "plane": "sagittal", "status": "enabled", "note": "Flexion positive in both"},
+    {"reference": "LKneeAngles.X", "coordinate": "knee_angle_l", "sign": 1, "plane": "sagittal", "status": "enabled", "note": "Flexion positive in both; OpenSim range 0-140 deg"},
+    {"reference": "RKneeAngles.X", "coordinate": "knee_angle_r", "sign": 1, "plane": "sagittal", "status": "enabled", "note": "Flexion positive in both; OpenSim range 0-140 deg"},
+    {"reference": "LAnkleAngles.X", "coordinate": "ankle_angle_l", "sign": 1, "plane": "sagittal", "status": "enabled", "note": "Dorsiflexion positive in both; zero positions differ, and AFO plus foot are measured together"},
+    {"reference": "RAnkleAngles.X", "coordinate": "ankle_angle_r", "sign": 1, "plane": "sagittal", "status": "enabled", "note": "Dorsiflexion positive in both; zero positions differ, and AFO plus foot are measured together"},
+    {"reference": "LHipAngles.Y", "coordinate": "hip_adduction_l", "sign": 1, "plane": "frontal", "status": "caution", "note": "Adduction positive in both; segment axes and rotation order differ"},
+    {"reference": "RHipAngles.Y", "coordinate": "hip_adduction_r", "sign": 1, "plane": "frontal", "status": "caution", "note": "Adduction positive in both; segment axes and rotation order differ"},
+    {"reference": "LHipAngles.Z", "coordinate": "hip_rotation_l", "sign": 1, "plane": "transverse", "status": "caution", "note": "Internal rotation positive in both; hip rotation is the least reliable angle in marker-based gait analysis too"},
+    {"reference": "RHipAngles.Z", "coordinate": "hip_rotation_r", "sign": 1, "plane": "transverse", "status": "caution", "note": "Internal rotation positive in both; hip rotation is the least reliable angle in marker-based gait analysis too"},
+    {"reference": "LPelvisAngles.X", "coordinate": "pelvis_tilt", "sign": null, "plane": "sagittal", "status": "disabled", "note": "OpenSim pelvis_tilt sign relative to clinical anterior tilt is unverified here; enable only after checking a static trial"},
+    {"reference": "LPelvisAngles.Y", "coordinate": "pelvis_list", "sign": null, "plane": "frontal", "status": "disabled", "note": "Sign and side convention unverified"},
+    {"reference": "LPelvisAngles.Z", "coordinate": "pelvis_rotation", "sign": null, "plane": "transverse", "status": "disabled", "note": "Sign and side convention unverified; pelvis rotation can also wrap"}
+  ]
+}
